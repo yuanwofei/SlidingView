@@ -1,0 +1,39 @@
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <style name="AppBaseTheme" parent="Theme.AppCompat.Light.NoActionBar">
+
+    </style>
+
+    <style name="AppTheme" parent="AppBaseTheme">
+    </style>
+    
+    <!-- homePage menu item -->  
+    <style name="HomePageMenuItem">
+        <item name="android:layout_width">match_parent</item>
+		<item name="android:layout_height">55dp</item>
+		<item name="android:paddingLeft">5dp</item>
+		<item name="android:clickable">true</item>
+		<item name="android:gravity">center_vertical</item>
+		<item name="android:orientation">horizontal</item>
+    </style>
+    
+    <!-- homePage menu item name -->  
+    <style name="HomePageMenuItemName">
+        <item name="android:layout_width">match_parent</item>
+		<item name="android:layout_height">wrap_content</item>
+		<item name="android:layout_marginLeft">10dp</item>
+		<item name="android:layout_marginRight">5dp</item>
+		<!--<item name="android:drawableRight">@drawable/item_arrow</item>-->
+		<item name="android:gravity">center_vertical</item>
+		<item name="android:textColor">#fff</item>
+		<item name="android:textSize">17sp</item>
+		<item name="android:orientation">horizontal</item>
+    </style>    
+    
+    <!-- homePage menu 分割线 -->  
+    <style name="HomePageMenuItemDivide">
+        <item name="android:layout_width">match_parent</item>
+		<item name="android:layout_height">1dp</item>
+        <item name="android:background">#1fff</item>
+    </style>
+</resources>

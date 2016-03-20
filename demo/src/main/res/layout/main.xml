@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.fayuan.slidingview.SlidingView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/slidingview"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/sliding_bg">
+
+    <include layout="@layout/sliding_menu"></include>
+
+    <include layout="@layout/sliding_content"></include>
+
+</com.fayuan.slidingview.SlidingView>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="homepage_menu_item_pressed">#3000</color>
+    <color name="homepage_main_item_pressed">#1000</color>
+
+    <color name="actionbar_color">#3F51B5</color>
+</resources>
