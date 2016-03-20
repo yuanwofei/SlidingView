@@ -9,6 +9,7 @@ import android.view.VelocityTracker;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
+import android.view.ViewParent;
 import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 
@@ -178,6 +179,11 @@ public class SlidingView extends HorizontalScrollView {
         createVelocityTracker(ev);
 
         switch (ev.getAction() & MotionEvent.ACTION_MASK) {
+            case MotionEvent.ACTION_DOWN:
+                downX = (int) ev.getX();
+                downY = (int) ev.getY();
+                break;
+
             case MotionEvent.ACTION_MOVE:
                 Log.d("TAG", "MOVEddddd");
                 int tempX = (int) ev.getX();
@@ -197,7 +203,7 @@ public class SlidingView extends HorizontalScrollView {
                 }
 
                 //垂直滑动时，禁止左右滑动
-                if (deltaX < touchSlop && deltaX * 0.5f < deltaY) {
+                if (deltaX < touchSlop && deltaX < deltaY) {
                     isH = true;
                     isDrag = false;
                     if (Math.abs(deltaY) > touchSlop) {
@@ -209,6 +215,11 @@ public class SlidingView extends HorizontalScrollView {
                     //取消点击事件
                     isDrag = true;
                     isContentViewClicked = false;
+
+                    final ViewParent parent = getParent();
+                    if (parent != null) {
+                        parent.requestDisallowInterceptTouchEvent(true);
+                    }
                 }
 
                 break;
