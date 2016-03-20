@@ -197,7 +197,7 @@ public class SlidingView extends HorizontalScrollView {
                 }
 
                 //垂直滑动时，禁止左右滑动
-                if (deltaX < touchSlop && deltaX < deltaY && !isH) {
+                if (deltaX < touchSlop && deltaX * 0.5f < deltaY) {
                     isH = true;
                     isDrag = false;
                     if (Math.abs(deltaY) > touchSlop) {
