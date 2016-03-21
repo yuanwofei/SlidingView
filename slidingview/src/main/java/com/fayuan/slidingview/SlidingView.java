@@ -292,18 +292,15 @@ public class SlidingView extends HorizontalScrollView {
 
             case MotionEvent.ACTION_MOVE:
                 //不拦截左右滑动的子View
-                if (!isMenuOpen) {
-                    for (View view : noInterceptTouchEventChildViews) {
-                        view.getGlobalVisibleRect(mContentRect);
-                        if (mContentRect.contains((int) ev.getX(), (int) ev.getY())) {
-                            return false;
-                        }
+                for (View view : noInterceptTouchEventChildViews) {
+                    view.getGlobalVisibleRect(mContentRect);
+                    if (mContentRect.contains((int) ev.getX(), (int) ev.getY())) {
+                        return false;
                     }
                 }
-
-                float tempY = ev.getY();
-                deltaY = Math.abs(tempY - downY);
-                if (deltaY > touchSlop) {
+                
+                //不拦截上下滑动的子View
+                if (Math.abs(ev.getY() - downY) > touchSlop) {
                     return false;
                 }
 
