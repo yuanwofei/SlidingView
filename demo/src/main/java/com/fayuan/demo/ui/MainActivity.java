@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.ListView;
 
@@ -21,6 +22,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener{
 
     private ListView mListView;
 
+    private GridView mGridView;
+
     private String[] strings = {
             "wwww", "wwwww", "wwww", "wwww", "wwww", "wwww", "wwww", "wwww", "wwww",
             "wwww", "wwwww", "wwww", "wwww", "wwww", "wwww", "wwww", "wwww", "wwww",
@@ -31,6 +34,10 @@ public class MainActivity extends BaseActivity implements View.OnClickListener{
             "wwww", "wwwww", "wwww", "wwww", "wwww", "wwww", "wwww", "wwww", "wwww",
             "wwww", "wwwww", "wwww", "wwww", "wwww", "wwww", "wwww", "wwww", "wwww",
             "wwww", "wwwww", "wwww", "wwww", "wwww", "wwww", "wwww", "wwww", "wwww"
+    };
+
+    private String[] strings2 = {
+            "a", "b", "c", "d", "e", "f", "g", "h", "i"
     };
 
 	@Override
@@ -48,6 +55,10 @@ public class MainActivity extends BaseActivity implements View.OnClickListener{
         mBannerView = (BannerView) findViewById(R.id.banner_view);
         mListView = (ListView) findViewById(R.id.list);
         mListView.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, strings));
+
+        mGridView = (GridView) findViewById(R.id.gridview);
+        mGridView.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, strings2));
+
 
         mOpenMenu = (ImageView) findViewById(R.id.open_menu);
         mOpenMenu.setOnClickListener(this);
