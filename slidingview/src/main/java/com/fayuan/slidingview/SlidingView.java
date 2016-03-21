@@ -98,6 +98,7 @@ public class SlidingView extends HorizontalScrollView {
 
     @Override
     public void addView(View child) {
+
         if (child == null) {
             throw new IllegalArgumentException("Cannot add a null child view to SlidingView");
         }
@@ -178,16 +179,16 @@ public class SlidingView extends HorizontalScrollView {
     public boolean onTouchEvent(MotionEvent ev) {
         createVelocityTracker(ev);
 
-        switch (ev.getAction() & MotionEvent.ACTION_MASK) {
+        switch (ev.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                downX = (int) ev.getX();
-                downY = (int) ev.getY();
+                /*downX = (int) ev.getX();
+                downY = (int) ev.getY();*/
                 break;
 
             case MotionEvent.ACTION_MOVE:
-                Log.d("TAG", "MOVEddddd");
                 int tempX = (int) ev.getX();
                 int tempY = (int) ev.getY();
+
                 deltaX = Math.abs(tempX - downX);
                 deltaY = Math.abs(tempY - downY);
 
@@ -203,7 +204,9 @@ public class SlidingView extends HorizontalScrollView {
                 }
 
                 //垂直滑动时，禁止左右滑动
-                if (deltaX < touchSlop && deltaX < deltaY) {
+                Log.d("TAG", "deltaX = " + deltaX + "--deltaY = " + deltaY);
+                if (deltaX < deltaY || (!isMenuOpen && tempX - downX < 0)) {
+                    Log.d("TAG", "垂直");
                     isH = true;
                     isDrag = false;
                     if (Math.abs(deltaY) > touchSlop) {
@@ -212,6 +215,7 @@ public class SlidingView extends HorizontalScrollView {
                     }
                     return true;
                 } else {
+                    Log.d("TAG", "水平");
                     //取消点击事件
                     isDrag = true;
                     isContentViewClicked = false;
@@ -264,7 +268,7 @@ public class SlidingView extends HorizontalScrollView {
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
-        switch (ev.getAction() & MotionEvent.ACTION_MASK) {
+        switch (ev.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 downX = (int) ev.getX();
                 downY = (int) ev.getY();
