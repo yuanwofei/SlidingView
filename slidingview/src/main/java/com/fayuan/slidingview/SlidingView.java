@@ -9,7 +9,6 @@ import android.view.VelocityTracker;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
-import android.view.ViewParent;
 import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 
@@ -48,7 +47,7 @@ public class SlidingView extends HorizontalScrollView {
 
     private Rect mContentRect;
 
-    private int downX, downY;
+    private float downX, downY;
 
     private boolean isFirst = true;
 
@@ -58,7 +57,8 @@ public class SlidingView extends HorizontalScrollView {
 
     int xVelocity;
 
-    int deltaX, deltaY = 0;
+    float deltaX, deltaY = 0;
+
 
     private int mMinimumVelocity;
     private int mMaximumVelocity;
@@ -171,23 +171,19 @@ public class SlidingView extends HorizontalScrollView {
         }
     }
 
-    boolean isDrag = false;
+    boolean isBeingHorizontalDrag = false;
 
-    boolean isH = false;
+    boolean isBeingVerticalDrag = false;
+
 
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
         createVelocityTracker(ev);
 
         switch (ev.getAction()) {
-            case MotionEvent.ACTION_DOWN:
-                /*downX = (int) ev.getX();
-                downY = (int) ev.getY();*/
-                break;
-
             case MotionEvent.ACTION_MOVE:
-                int tempX = (int) ev.getX();
-                int tempY = (int) ev.getY();
+                float tempX = ev.getX();
+                float tempY = ev.getY();
 
                 deltaX = Math.abs(tempX - downX);
                 deltaY = Math.abs(tempY - downY);
@@ -195,46 +191,40 @@ public class SlidingView extends HorizontalScrollView {
                 downX = tempX;
                 downY = tempY;
 
-                if (isDrag) {
+                if (!isBeingHorizontalDrag && !isBeingVerticalDrag && (deltaX - deltaY == 0)){
+                    Log.d("TAG", "It is not drap");
                     break;
                 }
 
-                if (isH) {
-                    return true;
-                }
-
-                //垂直滑动时，禁止左右滑动
-                Log.d("TAG", "deltaX = " + deltaX + "--deltaY = " + deltaY);
-                if (deltaX < deltaY || (!isMenuOpen && tempX - downX < 0)) {
-                    Log.d("TAG", "垂直");
-                    isH = true;
-                    isDrag = false;
-                    if (Math.abs(deltaY) > touchSlop) {
-                        //取消点击事件
-                        isContentViewClicked = false;
-                    }
-                    return true;
-                } else {
-                    Log.d("TAG", "水平");
-                    //取消点击事件
-                    isDrag = true;
+                if (deltaX > touchSlop || deltaY > touchSlop) {
+                    Log.d("TAG", "Cancel the click event");
                     isContentViewClicked = false;
-
-                    final ViewParent parent = getParent();
-                    if (parent != null) {
-                        parent.requestDisallowInterceptTouchEvent(true);
-                    }
                 }
 
-                break;
+                if (!isBeingHorizontalDrag && !isBeingVerticalDrag && deltaX > touchSlop) {
+                    isBeingHorizontalDrag = true;
+                    isBeingVerticalDrag = false;
+                }
+
+                if (isBeingHorizontalDrag) {
+                    Log.d("TAG", "horizontal dragging");
+                    break;
+                } else if (!isBeingVerticalDrag && deltaY > touchSlop){
+                    Log.d("TAG", "vertical dragging");
+                    isBeingVerticalDrag = true;
+                    isBeingHorizontalDrag = false;
+                } else if (!isBeingVerticalDrag){
+                    break;
+                }
+                return true;
 
             case MotionEvent.ACTION_CANCEL:
             case MotionEvent.ACTION_UP:
-                isDrag = false;
-                isH = false;
+                isBeingVerticalDrag = false;
 
                 //fling滑动处理
-                if (deltaX > touchSlop) {
+                if (deltaX > touchSlop && !isBeingVerticalDrag) {
+                    isBeingHorizontalDrag = false;
                     mVelocityTracker.computeCurrentVelocity(1000, mMaximumVelocity);
                     xVelocity = (int) mVelocityTracker.getXVelocity();
                     recycleVelocityTracker();
@@ -247,9 +237,11 @@ public class SlidingView extends HorizontalScrollView {
                         return true;
                     }
                 }
+                isBeingHorizontalDrag = false;
 
                 //单击mContent
                 if (isContentViewClicked && getScrollX() == 0) {
+                    Log.d("TAG", "perform click");
                     closeMenu();
                     return true;
                 }
@@ -269,9 +261,16 @@ public class SlidingView extends HorizontalScrollView {
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
         switch (ev.getAction()) {
+
+            case MotionEvent.ACTION_CANCEL:
+            case MotionEvent.ACTION_UP:
+                isBeingHorizontalDrag = false;
+                isBeingVerticalDrag = false;
+                break;
+
             case MotionEvent.ACTION_DOWN:
-                downX = (int) ev.getX();
-                downY = (int) ev.getY();
+                downX = ev.getX();
+                downY = ev.getY();
 
                 isContentViewClicked = false;
                 if (isMenuOpen) {
@@ -298,10 +297,6 @@ public class SlidingView extends HorizontalScrollView {
                         }
                     }
                 }
-
-                Log.d("TAG", "MOVE");
-
-                //return false;
             break;
         }
         return super.onInterceptTouchEvent(ev);
