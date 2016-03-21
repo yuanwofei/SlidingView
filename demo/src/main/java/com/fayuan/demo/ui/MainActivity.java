@@ -3,7 +3,9 @@ package com.fayuan.demo.ui;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.ListView;
 
 import com.fayuan.demo.R;
 import com.fayuan.bannerview.BannerView;
@@ -16,6 +18,20 @@ public class MainActivity extends BaseActivity implements View.OnClickListener{
     private BannerView mBannerView;
 
 	private SlidingView mSlidingView;
+
+    private ListView mListView;
+
+    private String[] strings = {
+            "wwww", "wwwww", "wwww", "wwww", "wwww", "wwww", "wwww", "wwww", "wwww",
+            "wwww", "wwwww", "wwww", "wwww", "wwww", "wwww", "wwww", "wwww", "wwww",
+            "wwww", "wwwww", "wwww", "wwww", "wwww", "wwww", "wwww", "wwww", "wwww",
+            "wwww", "wwwww", "wwww", "wwww", "wwww", "wwww", "wwww", "wwww", "wwww",
+            "wwww", "wwwww", "wwww", "wwww", "wwww", "wwww", "wwww", "wwww", "wwww",
+            "wwww", "wwwww", "wwww", "wwww", "wwww", "wwww", "wwww", "wwww", "wwww",
+            "wwww", "wwwww", "wwww", "wwww", "wwww", "wwww", "wwww", "wwww", "wwww",
+            "wwww", "wwwww", "wwww", "wwww", "wwww", "wwww", "wwww", "wwww", "wwww",
+            "wwww", "wwwww", "wwww", "wwww", "wwww", "wwww", "wwww", "wwww", "wwww"
+    };
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -30,8 +46,10 @@ public class MainActivity extends BaseActivity implements View.OnClickListener{
 	private void initView() {
 		mSlidingView = (SlidingView) findViewById(R.id.slidingview);
         mBannerView = (BannerView) findViewById(R.id.banner_view);
-        mOpenMenu = (ImageView) findViewById(R.id.open_menu);
+        mListView = (ListView) findViewById(R.id.list);
+        mListView.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, strings));
 
+        mOpenMenu = (ImageView) findViewById(R.id.open_menu);
         mOpenMenu.setOnClickListener(this);
 	}
 

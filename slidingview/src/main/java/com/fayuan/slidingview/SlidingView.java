@@ -209,22 +209,25 @@ public class SlidingView extends HorizontalScrollView {
                 if (isBeingHorizontalDrag) {
                     Log.d("TAG", "horizontal dragging");
                     break;
-                } else if (!isBeingVerticalDrag && deltaY > touchSlop){
-                    Log.d("TAG", "vertical dragging");
+                }
+
+                if (!isBeingVerticalDrag && deltaY > touchSlop){
                     isBeingVerticalDrag = true;
                     isBeingHorizontalDrag = false;
-                } else if (!isBeingVerticalDrag){
-                    break;
                 }
-                return true;
+                if (isBeingVerticalDrag) {
+                    Log.d("TAG", "vertical dragging");
+                    return true;
+                }
+                break;
 
             case MotionEvent.ACTION_CANCEL:
             case MotionEvent.ACTION_UP:
-                isBeingVerticalDrag = false;
+                isBeingHorizontalDrag = false;
 
                 //fling滑动处理
                 if (deltaX > touchSlop && !isBeingVerticalDrag) {
-                    isBeingHorizontalDrag = false;
+                    isBeingVerticalDrag = false;
                     mVelocityTracker.computeCurrentVelocity(1000, mMaximumVelocity);
                     xVelocity = (int) mVelocityTracker.getXVelocity();
                     recycleVelocityTracker();
@@ -237,7 +240,7 @@ public class SlidingView extends HorizontalScrollView {
                         return true;
                     }
                 }
-                isBeingHorizontalDrag = false;
+                isBeingVerticalDrag = false;
 
                 //单击mContent
                 if (isContentViewClicked && getScrollX() == 0) {
@@ -297,6 +300,13 @@ public class SlidingView extends HorizontalScrollView {
                         }
                     }
                 }
+
+                float tempY = ev.getY();
+                deltaY = Math.abs(tempY - downY);
+                if (deltaY > touchSlop) {
+                    return false;
+                }
+
             break;
         }
         return super.onInterceptTouchEvent(ev);
