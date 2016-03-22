@@ -175,6 +175,7 @@ public class SlidingView extends HorizontalScrollView {
 
     boolean isBeingVerticalDrag = false;
 
+    boolean isUnableToDrag = false;
 
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
@@ -185,23 +186,29 @@ public class SlidingView extends HorizontalScrollView {
                 float tempX = ev.getX();
                 float tempY = ev.getY();
 
-                deltaX = Math.abs(tempX - downX);
-                deltaY = Math.abs(tempY - downY);
+                deltaX = tempX - downX;
+                deltaY = tempY - downY;
 
                 downX = tempX;
                 downY = tempY;
 
-                if (!isBeingHorizontalDrag && !isBeingVerticalDrag && (deltaX - deltaY == 0)){
-                    Log.d("TAG", "It is not drap");
-                    break;
-                }
-
-                if (deltaX > touchSlop || deltaY > touchSlop) {
+                if (Math.abs(deltaX) > touchSlop || Math.abs(deltaY) > touchSlop) {
                     Log.d("TAG", "Cancel the click event");
                     isContentViewClicked = false;
                 }
 
-                if (!isBeingHorizontalDrag && !isBeingVerticalDrag && deltaX > touchSlop) {
+                if (!isUnableToDrag && !isBeingHorizontalDrag && !isBeingVerticalDrag && Math.abs(deltaX) > touchSlop) {
+                    if (isMenuOpen && deltaX > 0 || !isMenuOpen && deltaX < 0) {
+                        isUnableToDrag = true;
+                    }
+                }
+                //在侧滑菜单在打开或不开打开的情况下，禁止SlidingView左右滑动
+                if (isUnableToDrag) {
+                    Log.d("TAG", "horizontal dragging");
+                    return true;
+                }
+
+                if (!isBeingHorizontalDrag && !isBeingVerticalDrag && Math.abs(deltaX) > touchSlop) {
                     isBeingHorizontalDrag = true;
                     isBeingVerticalDrag = false;
                 }
@@ -211,7 +218,7 @@ public class SlidingView extends HorizontalScrollView {
                     break;
                 }
 
-                if (!isBeingVerticalDrag && deltaY > touchSlop){
+                if (!isBeingVerticalDrag && Math.abs(deltaY) > touchSlop){
                     isBeingVerticalDrag = true;
                     isBeingHorizontalDrag = false;
                 }
@@ -226,8 +233,7 @@ public class SlidingView extends HorizontalScrollView {
                 isBeingHorizontalDrag = false;
 
                 //fling滑动处理
-                if (deltaX > touchSlop && !isBeingVerticalDrag) {
-                    isBeingVerticalDrag = false;
+                if (Math.abs(deltaX) > touchSlop && !isBeingVerticalDrag && !isUnableToDrag) {
                     mVelocityTracker.computeCurrentVelocity(1000, mMaximumVelocity);
                     xVelocity = (int) mVelocityTracker.getXVelocity();
                     recycleVelocityTracker();
@@ -241,6 +247,7 @@ public class SlidingView extends HorizontalScrollView {
                     }
                 }
                 isBeingVerticalDrag = false;
+                isUnableToDrag = false;
 
                 //单击mContent
                 if (isContentViewClicked && getScrollX() == 0) {
@@ -269,6 +276,7 @@ public class SlidingView extends HorizontalScrollView {
             case MotionEvent.ACTION_UP:
                 isBeingHorizontalDrag = false;
                 isBeingVerticalDrag = false;
+                isUnableToDrag = false;
                 break;
 
             case MotionEvent.ACTION_DOWN:
@@ -304,6 +312,13 @@ public class SlidingView extends HorizontalScrollView {
                     return false;
                 }
 
+                //在侧滑菜单在打开或不开打开的情况下，禁止SlidingView左右滑动，不禁止子View的左右滑动
+                float deltaX = ev.getX() - downX;
+                if (Math.abs(deltaX) > touchSlop) {
+                    if (isMenuOpen && deltaX > 0 || !isMenuOpen && deltaX < 0) {
+                        return false;
+                    }
+                }
             break;
         }
         return super.onInterceptTouchEvent(ev);
