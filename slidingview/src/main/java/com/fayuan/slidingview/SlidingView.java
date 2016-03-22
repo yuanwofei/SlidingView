@@ -27,6 +27,8 @@ import java.util.List;
  */
 public class SlidingView extends HorizontalScrollView {
 
+    private static final String TAG = "SlidingView";
+
     public static final int SLIDING_MENU_OPEN = 0x111;
 
     public static final int SLIDING_MENU_CLOSE = 0x112;
@@ -47,27 +49,28 @@ public class SlidingView extends HorizontalScrollView {
 
     private Rect mContentRect;
 
-    private float downX, downY;
-
     private boolean isFirst = true;
 
     private boolean isMenuOpen;
 
     private boolean isContentViewClicked;
 
-    int xVelocity;
+    private float downX, downY;
 
-    float deltaX, deltaY = 0;
+    private boolean isBeingHorizontalDrag = false;
 
+    private boolean isBeingVerticalDrag = false;
 
+    private boolean isUnableToDrag = false;
+
+    private int touchSlop;
     private int mMinimumVelocity;
     private int mMaximumVelocity;
-    private int touchSlop;
     private VelocityTracker mVelocityTracker;
 
     private OnSlidingMenuListener onSlidingMenuListener;
 
-    private List<View> noInterceptTouchEventChildViews = new ArrayList<View>();
+    private List<View> noInterceptTouchEventChildViews = new ArrayList<>();
 
     public SlidingView(Context context) {
         this(context, null);
@@ -171,96 +174,6 @@ public class SlidingView extends HorizontalScrollView {
         }
     }
 
-    boolean isBeingHorizontalDrag = false;
-
-    boolean isBeingVerticalDrag = false;
-
-
-    @Override
-    public boolean onTouchEvent(MotionEvent ev) {
-        createVelocityTracker(ev);
-
-        switch (ev.getAction()) {
-            case MotionEvent.ACTION_MOVE:
-                float tempX = ev.getX();
-                float tempY = ev.getY();
-
-                deltaX = Math.abs(tempX - downX);
-                deltaY = Math.abs(tempY - downY);
-
-                downX = tempX;
-                downY = tempY;
-
-                if (!isBeingHorizontalDrag && !isBeingVerticalDrag && (deltaX - deltaY == 0)){
-                    Log.d("TAG", "It is not drap");
-                    break;
-                }
-
-                if (deltaX > touchSlop || deltaY > touchSlop) {
-                    Log.d("TAG", "Cancel the click event");
-                    isContentViewClicked = false;
-                }
-
-                if (!isBeingHorizontalDrag && !isBeingVerticalDrag && deltaX > touchSlop) {
-                    isBeingHorizontalDrag = true;
-                    isBeingVerticalDrag = false;
-                }
-
-                if (isBeingHorizontalDrag) {
-                    Log.d("TAG", "horizontal dragging");
-                    break;
-                }
-
-                if (!isBeingVerticalDrag && deltaY > touchSlop){
-                    isBeingVerticalDrag = true;
-                    isBeingHorizontalDrag = false;
-                }
-                if (isBeingVerticalDrag) {
-                    Log.d("TAG", "vertical dragging");
-                    return true;
-                }
-                break;
-
-            case MotionEvent.ACTION_CANCEL:
-            case MotionEvent.ACTION_UP:
-                isBeingHorizontalDrag = false;
-
-                //fling滑动处理
-                if (deltaX > touchSlop && !isBeingVerticalDrag) {
-                    isBeingVerticalDrag = false;
-                    mVelocityTracker.computeCurrentVelocity(1000, mMaximumVelocity);
-                    xVelocity = (int) mVelocityTracker.getXVelocity();
-                    recycleVelocityTracker();
-                    if (Math.abs(xVelocity) > mMinimumVelocity) {
-                        if (xVelocity > 0) {
-                            openMenu();
-                        } else {
-                            closeMenu();
-                        }
-                        return true;
-                    }
-                }
-                isBeingVerticalDrag = false;
-
-                //单击mContent
-                if (isContentViewClicked && getScrollX() == 0) {
-                    Log.d("TAG", "perform click");
-                    closeMenu();
-                    return true;
-                }
-
-                //滑动释放时处理
-                if (getScrollX() >= mMenuWidth / 2) {
-                    closeMenu();
-                    return true;
-                } else {
-                    openMenu();
-                    return true;
-                }
-        }
-        return super.onTouchEvent(ev);
-    }
-
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
         switch (ev.getAction()) {
@@ -269,6 +182,7 @@ public class SlidingView extends HorizontalScrollView {
             case MotionEvent.ACTION_UP:
                 isBeingHorizontalDrag = false;
                 isBeingVerticalDrag = false;
+                isUnableToDrag = false;
                 break;
 
             case MotionEvent.ACTION_DOWN:
@@ -304,9 +218,105 @@ public class SlidingView extends HorizontalScrollView {
                     return false;
                 }
 
+                //在侧滑菜单在打开或不开打开的情况下，禁止SlidingView左右滑动，不禁止子View的左右滑动
+                float deltaX = ev.getX() - downX;
+                if (Math.abs(deltaX) > touchSlop) {
+                    if ((isMenuOpen && deltaX > 0) || (!isMenuOpen && deltaX < 0)) {
+                        Log.d(TAG, "Child view drag");
+                        return false;
+                    }
+                }
             break;
         }
         return super.onInterceptTouchEvent(ev);
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent ev) {
+        createVelocityTracker(ev);
+
+        switch (ev.getAction()) {
+            case MotionEvent.ACTION_MOVE:
+                float deltaX = ev.getX() - downX;
+                float deltaY = ev.getY() - downY;
+
+                downX = ev.getX();
+                downY = ev.getY();
+
+                if (Math.abs(deltaX) > touchSlop || Math.abs(deltaY) > touchSlop) {
+                    Log.d(TAG, "Cancel the click event");
+                    isContentViewClicked = false;
+                }
+
+                if (!isUnableToDrag && !isBeingHorizontalDrag && !isBeingVerticalDrag && Math.abs(deltaX) > touchSlop) {
+                    if (isMenuOpen && deltaX > 0 || !isMenuOpen && deltaX < 0) {
+                        isUnableToDrag = true;
+                    }
+                }
+                //在侧滑菜单在打开或不开打开的情况下，禁止SlidingView左右滑动
+                if (isUnableToDrag) {
+                    Log.d(TAG, "horizontal unableToDrag");
+                    return true;
+                }
+
+                if (!isBeingHorizontalDrag && !isBeingVerticalDrag && Math.abs(deltaX) > touchSlop) {
+                    isBeingHorizontalDrag = true;
+                    isBeingVerticalDrag = false;
+                }
+
+                if (isBeingHorizontalDrag) {
+                    Log.d(TAG, "horizontal dragging");
+                    break;
+                }
+
+                if (!isBeingVerticalDrag && Math.abs(deltaY) > touchSlop){
+                    isBeingVerticalDrag = true;
+                    isBeingHorizontalDrag = false;
+                }
+                if (isBeingVerticalDrag) {
+                    Log.d(TAG, "vertical dragging");
+                    return true;
+                }
+                break;
+
+            case MotionEvent.ACTION_CANCEL:
+            case MotionEvent.ACTION_UP:
+                //fling滑动处理
+                if (isBeingHorizontalDrag && !isBeingVerticalDrag && !isUnableToDrag) {
+                    isBeingHorizontalDrag = false;
+                    mVelocityTracker.computeCurrentVelocity(1000, mMaximumVelocity);
+                    int xVelocity = (int) mVelocityTracker.getXVelocity();
+                    recycleVelocityTracker();
+                    if (Math.abs(xVelocity) > mMinimumVelocity) {
+                        if (xVelocity > 0) {
+                            openMenu();
+                        } else {
+                            closeMenu();
+                        }
+                        return true;
+                    }
+                }
+                isBeingHorizontalDrag = false;
+                isBeingVerticalDrag = false;
+                isUnableToDrag = false;
+
+                //单击mContent
+                if (isContentViewClicked && getScrollX() == 0) {
+                    Log.d(TAG, "perform click");
+                    closeMenu();
+                    return true;
+                }
+
+                //滑动释放时处理
+                if (getScrollX() >= mMenuWidth / 2) {
+                    closeMenu();
+                    return true;
+                } else {
+                    openMenu();
+                    return true;
+                }
+        }
+        return super.onTouchEvent(ev);
     }
 
     @Override
